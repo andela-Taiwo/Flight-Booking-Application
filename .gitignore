@@ -102,3 +102,41 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+.DS_Store
+tmp 
+.vscode/
+.env
+.idea
+__pycache__
+*.pyc
+staticfiles
+
+coverage
+# Unit test / coverage reports
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+/htmlcov/
+
+.idea/
+db.sqlite3
+.env
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+
+
+# Django stuff:
+*.log
+*.pot
+
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
