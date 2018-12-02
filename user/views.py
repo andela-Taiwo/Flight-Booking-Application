@@ -63,3 +63,10 @@ class VerifyEmailView(APIView):
         qs = EmailConfirmation.objects.all_valid()
         qs = qs.select_related("email_address__user")
         return qs
+
+class CustomLoginView(LoginView):
+    def get_response(self):
+        orginal_response = super().get_response()
+        mydata = {"message": "You have successfully logged in", "status": "success"}
+        orginal_response.data.update(mydata)
+        return orginal_response
