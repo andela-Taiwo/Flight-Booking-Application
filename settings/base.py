@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'api',
     'user',
+    'config',
     # 'core',
     # 'media',
     'corsheaders',
@@ -65,7 +66,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-   'EXCEPTION_HANDLER': 'api.exceptions.muba_exception_handler',
+#    'EXCEPTION_HANDLER': 'api.exceptions.muba_exception_handler',
 
 }
 
@@ -94,18 +95,18 @@ ACCOUNT_PASSWORD_RESET_CONFIRM = LOGIN_URL + 'password-reset/confirm/'
 
 REST_USE_JWT = True
 REST_AUTH_REGISTER_SERIALIZERS = {
-        'REGISTER_SERIALIZER': 'api.serializers.RegisterSerializerCustom',
+        'REGISTER_SERIALIZER': 'user.serializers.RegisterSerializerCustom',
         
 }
 REST_AUTH_SERIALIZERS = {
-    'USER_DETAILS_SERIALIZER': 'api.serializers.UserSerializer',
-    'PASSWORD_RESET_SERIALIZER': 'api.serializers.PasswordSerializer',
+    'USER_DETAILS_SERIALIZER': 'user.serializers.UserSerializer',
+    'PASSWORD_RESET_SERIALIZER': 'user.serializers.PasswordSerializer',
 }
 AUTH_USER_MODEL = 'user.User'
 
 JWT_AUTH = {
     'JWT_ALLOW_REFRESH': True,
-    'JWT_EXPIRATION_DELTA': timedelta(days=3),
+    'JWT_EXPIRATION_DELTA': timedelta(days=7),
     'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=7),
     'JWT_AUTH_HEADER_PREFIX': 'Bearer',
     # 'JWT_SECRET_KEY': config(SECRET_KEY, default=''),
