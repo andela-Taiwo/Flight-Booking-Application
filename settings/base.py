@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'api',
     'user',
     'config',
-    # 'core',
+    'flight',
     # 'media',
     'corsheaders',
     'rest_auth',
