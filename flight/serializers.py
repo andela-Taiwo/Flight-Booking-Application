@@ -57,9 +57,7 @@ class FlightSerializer(serializers.ModelSerializer):
         model = Flight
         fields = ('__all__')
 
-class CreateBookFlightSerializer(serializers.ModelSerializer):
-    # flight = FlightSerializer(read_only=True)
-    
+class CreateBookFlightSerializer(serializers.ModelSerializer):  
     class Meta:
         model = Passenger
         fields = [
@@ -73,11 +71,11 @@ class CreateBookFlightSerializer(serializers.ModelSerializer):
             'contact_next_of_kin_name',
             'contact_next_of_kin_relationship',
             'contact_next_of_kin_mobile',
-            'flight',
+            'passenger_flight',
         ]
     
 class BookFlightSerializer(serializers.ModelSerializer):
-    flight = FlightSerializer(read_only=True)
+    passenger_flight = FlightSerializer(read_only=True)
     
     class Meta:
         model = Passenger

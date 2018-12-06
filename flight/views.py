@@ -68,7 +68,6 @@ class FlightViewSet(viewsets.ViewSet):
         ) 
     @decorators.action(methods=['post'], detail=False, url_path='book')
     def book_flight(self, request, *args, **kwargs):
-        import pdb; pdb.set_trace()
         booked_flight = flight_services.book_ticket(
             requestor=request.user,
             data=request.data,

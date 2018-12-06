@@ -2,6 +2,7 @@ import json
 from rest_framework.generics import get_object_or_404
 from django.contrib.auth.models import User
 from rest_framework.exceptions import APIException
+from rest_framework import exceptions
 from .models import (
   Flight, Passenger
 )
@@ -34,7 +35,7 @@ def _split_choices_int(choices):
 
     return include, exclude
 
-def deserialize_flight(*, action='create', data, serializer_class, flight):
+def deserialize_flight(*, action='create', data, serializer_class, flight, requestor):
     ''' deserialize a flight before creating or updating'''
     assert action == 'create' or action == 'update'
     serializer = serializer_class(
@@ -45,8 +46,10 @@ def deserialize_flight(*, action='create', data, serializer_class, flight):
     serializer.is_valid(raise_exception=True)
 
     validated_data = serializer.validated_data
-    if action == 'action':
+    if action == 'create':
         validated_data.pop('checkin')
+        validated_data.pop('author')
+        validated_data['author'] = requestor
 
     for name, value in validated_data.items():
         setattr(flight, name, value)
@@ -66,7 +69,8 @@ def create_flight(requestor, data):
         flight = deserialize_flight(
             data=data_info,
             serializer_class=CreateFlightSerializer,
-            flight=flight
+            flight=flight,
+            requestor=requestor
         )
         with transaction.atomic():
             flight.save()
@@ -187,7 +191,8 @@ def update_flight(requestor, flight_id, data):
         data=data_info,
         serializer_class=FlightSerializer,
         flight=flight,
-        action='update'
+        action='update',
+        requestor=requestor
     )
     with transaction.atomic():
         updated_flight.save()
@@ -205,8 +210,6 @@ def deserialize_ticket(*, action='create', data, serializer_class, ticket):
     serializer.is_valid(raise_exception=True)
 
     validated_data = serializer.validated_data
-    # if action == 'action':
-    #     validated_data.pop('')
 
     for name, value in validated_data.items():
         setattr(ticket, name, value)
@@ -214,12 +217,15 @@ def deserialize_ticket(*, action='create', data, serializer_class, ticket):
     return ticket
 
 def book_ticket(requestor, data):
+    assert(isinstance(data, list) or isinstance(data, dict)) 
+    if isinstance(data, dict):
+        data = [data]
     # if requestor.is_staff or requestor == author:
     data_info = data.copy() 
     booked_flight = []
     for dt in data_info:
         ticket = Passenger()
-        flight = retrieve_flight(requestor, dt.get('flight'))
+        flight = retrieve_flight(requestor, dt.get('passenger_flight'))
         if flight:
             # import pdb; pdb.set_trace()
             # dt['flight'] = flight
@@ -235,13 +241,18 @@ def book_ticket(requestor, data):
                 booked_flight.append(serializer)
     return booked_flight
 
-def confirm_checkin(requestor, flight_id):
-    # if requestor.is_staff or requestor == author:
-    flight = retrieve_flight(requestor, flight_id)
-    if flight.checkin == False:
-        flight.checkin = True
+def retrieve_passenger(requestor, flight_id):
+    passenger = Passenger.objects.filter(passenger_flight=flight_id).first()
+    return passenger
 
-        with transaction.atomic():
-            flight.save()
-    
-    return flight
+def confirm_checkin(requestor, flight_id):
+    passenger = retrieve_passenger(requestor, flight_id)
+    if passenger == requestor:
+        if passenger.passenger_flight.checkin == False:
+            passenger.passenger_flight.checkin = True
+
+            with transaction.atomic():
+                passenger.save()
+        
+        return passenger
+    raise exceptions.PermissionDenied(detail='Not your flight')
