@@ -17,6 +17,7 @@ import flight.services as flight_services
 class FlightViewSet(viewsets.ViewSet):
 
     def list(self, request):
+        ''' List and flter the flights '''
         flights = flight_services.filter_flight(
             requestor=request.user,
             query_params=request.query_params
@@ -26,6 +27,7 @@ class FlightViewSet(viewsets.ViewSet):
         )
 
     def update(self, request, *args, **kwargs):
+        ''' Update a single flight '''
         try:
             flight_id = int(kwargs.get('pk'))
         except ValueError as e:
@@ -38,6 +40,7 @@ class FlightViewSet(viewsets.ViewSet):
         )
 
     def retrieve(self, request, *args, **kwargs):
+        ''' Retrieve a flight'''
         try:
             flight_id = int(kwargs.get('pk'))
         except ValueError as e:
@@ -55,21 +58,31 @@ class FlightViewSet(viewsets.ViewSet):
         )
 
     def create(self, request, *args, **kwargs):
+        ''' Create a single flight'''
         flight = flight_services.create_flight(
             data=request.data,
             requestor=request.user
         )
         return FlightBoookingAPIResponse(
-            FlightSerializer(flight).data
-        )
-        
-    @decorators.action(methods=['post'], detail=False, url_path='(?P<flight_pk>\d+)/book')
+            FlightSerializer(flight, many=True).data
+        ) 
+    @decorators.action(methods=['post'], detail=False, url_path='book')
     def book_flight(self, request, *args, **kwargs):
-        booked_flight = flight_services.book_flight(
+        import pdb; pdb.set_trace()
+        booked_flight = flight_services.book_ticket(
             requestor=request.user,
             data=request.data,
+        )
+        return FlightBoookingAPIResponse(
+            BookFlightSerializer(booked_flight, many=True).data
+        )
+
+    @decorators.action(methods=['put'], detail=False, url_path='(?P<flight_pk>\d+)/confirm')
+    def confirm_flight_checkin(self, request, *args, **kwargs):
+        confirmed_flight = flight_services.confirm_checkin(
+            requestor=request.user,
             flight_id=kwargs.get('flight_pk')
         )
         return FlightBoookingAPIResponse(
-            BookFlightSerializer(booked_flight).data
+            BookFlightSerializer(confirmed_flight).data
         )

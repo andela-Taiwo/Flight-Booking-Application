@@ -11,8 +11,10 @@ from django.db import (
     models
 )
 from .serializers import (
+    CreateFlightSerializer,
     FlightSerializer,
-    BookFlightSerializer
+    BookFlightSerializer,
+    CreateBookFlightSerializer
     )
 
 
@@ -43,6 +45,8 @@ def deserialize_flight(*, action='create', data, serializer_class, flight):
     serializer.is_valid(raise_exception=True)
 
     validated_data = serializer.validated_data
+    if action == 'action':
+        validated_data.pop('checkin')
 
     for name, value in validated_data.items():
         setattr(flight, name, value)
@@ -52,17 +56,22 @@ def deserialize_flight(*, action='create', data, serializer_class, flight):
 
 def create_flight(requestor, data):
     ''' Create a flight '''
-
-    flight = Flight()
-    data_info = data.copy()
-    flight = deserialize_flight(
-        data=data_info,
-        serializer_class=FlightSerializer,
-        flight=flight
-    )
-    with transaction.atomic():
-        flight.save()
-    return  flight
+    assert(isinstance(data, list) or isinstance(data, dict)) 
+    if isinstance(data, dict):
+        data = [data]
+    flights = []
+    for dt in data:
+        flight = Flight()
+        data_info = dt.copy()
+        flight = deserialize_flight(
+            data=data_info,
+            serializer_class=CreateFlightSerializer,
+            flight=flight
+        )
+        with transaction.atomic():
+            flight.save()
+            flights.append(flight)
+    return  flights
 
 
 def filter_flight(requestor, query_params):
@@ -184,14 +193,55 @@ def update_flight(requestor, flight_id, data):
         updated_flight.save()
     return updated_flight
 
-def book_flight(requestor, flight_id, data):
+
+def deserialize_ticket(*, action='create', data, serializer_class, ticket):
+    ''' deserialize a flight before creating or updating'''
+    assert action == 'create' or action == 'update'
+    serializer = serializer_class(
+        instance=ticket,
+        partial=(action == 'update'),
+        data=data
+    )
+    serializer.is_valid(raise_exception=True)
+
+    validated_data = serializer.validated_data
+    # if action == 'action':
+    #     validated_data.pop('')
+
+    for name, value in validated_data.items():
+        setattr(ticket, name, value)
+
+    return ticket
+
+def book_ticket(requestor, data):
     # if requestor.is_staff or requestor == author:
     data_info = data.copy() 
-    flight = retrieve_flight(requestor, flight_id)
+    booked_flight = []
+    for dt in data_info:
+        ticket = Passenger()
+        flight = retrieve_flight(requestor, dt.get('flight'))
+        if flight:
+            # import pdb; pdb.set_trace()
+            # dt['flight'] = flight
+            serializer = deserialize_ticket(
+                data=dt, 
+                serializer_class=CreateBookFlightSerializer,
+                ticket=ticket
+            )
+            with transaction.atomic():
+                
+                serializer.flight = flight
+                serializer.save()
+                booked_flight.append(serializer)
+    return booked_flight
 
-    if flight:
-        data_info['flight'] = flight
-        serializer = BookFlightSerializer(data=data_info)
+def confirm_checkin(requestor, flight_id):
+    # if requestor.is_staff or requestor == author:
+    flight = retrieve_flight(requestor, flight_id)
+    if flight.checkin == False:
+        flight.checkin = True
+
         with transaction.atomic():
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
+            flight.save()
+    
+    return flight

@@ -1,3 +1,4 @@
+import pytz
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from user.models import User
@@ -35,6 +36,7 @@ class Flight(models.Model):
 
 
 class Passenger(models.Model):
+    ''' Passenger Model '''
     MALE = 0
     FEMALE = 1
     UNKNOWN = 2
