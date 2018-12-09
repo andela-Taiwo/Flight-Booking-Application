@@ -18,7 +18,7 @@ class CreateFlightSerializer(serializers.ModelSerializer):
             "departure",
             "arrival",
             "starting_from",
-            "destination",
+            "destination", 
             "checkin"
         ]
 

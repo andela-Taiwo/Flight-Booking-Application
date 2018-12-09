@@ -39,6 +39,12 @@ class FlightViewSet(viewsets.ViewSet):
             flight_id=kwargs.get('pk')
         )
 
+        return FlightBoookingAPIResponse(
+            FlightSerializer(
+                flight
+            ).data
+        )
+
     def retrieve(self, request, *args, **kwargs):
         ''' Retrieve a flight'''
         try:

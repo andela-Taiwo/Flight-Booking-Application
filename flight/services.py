@@ -17,6 +17,7 @@ from .serializers import (
     BookFlightSerializer,
     CreateBookFlightSerializer
     )
+from flight.tasks import task_notify_user
 
 
 def _split_choices_int(choices):
@@ -47,9 +48,10 @@ def deserialize_flight(*, action='create', data, serializer_class, flight, reque
 
     validated_data = serializer.validated_data
     if action == 'create':
-        validated_data.pop('checkin')
-        validated_data.pop('author')
+        validated_data.pop('checkin', None)
+        validated_data.pop('author', None)
         validated_data['author'] = requestor
+        validated_data['checkin'] = False
 
     for name, value in validated_data.items():
         setattr(flight, name, value)
@@ -80,8 +82,6 @@ def create_flight(requestor, data):
 
 def filter_flight(requestor, query_params):
     '''Filter flight'''
-    # permissions = user_roles.UserPermissions(requestor, 'ticket')
-    # permissions.check('filter')
     filter = {}
     if 'checkin' in query_params:
         checkin_flights = json.loads(query_params.get('checkin'))
@@ -89,8 +89,8 @@ def filter_flight(requestor, query_params):
             filter['checkin'] = checkin_flights
         elif isinstance(checkin_flights, int):
             filter['level'] = [checkin_flights]
-        # else:
-        #     raise api_exceptions.BadRequest()
+        else:
+            raise APIException()
 
     if 'destination' in query_params:
         flight_destination = json.loads(query_params.get('destination'))
@@ -98,8 +98,8 @@ def filter_flight(requestor, query_params):
             filter['destination'] = flight_destination
         elif isinstance(flight_destination, int):
             filter['destination'] = [flight_destination]
-        # else:
-        #     raise api_exceptions.BadRequest()
+        else:
+            raise APIException()
 
     if 'starting_from' in query_params:
         flight_start = json.loads(query_params.get('starting_from'))
@@ -107,8 +107,8 @@ def filter_flight(requestor, query_params):
             filter['starting_from'] = flight_start
         elif isinstance(flight_start, int):
             filter['starting_from'] = [flight_start]
-        # else:
-        #     raise api_exceptions.BadRequest()
+        else:
+            raise APIException()
     
     if 'flight_type' in query_params:
         flight_type = json.loads(query_params.get('flight_type'))
@@ -116,8 +116,8 @@ def filter_flight(requestor, query_params):
             filter['flight_type'] = flight_type
         elif isinstance(flight_type, int):
             filter['flight_type'] = [flight_type]
-        # else:
-        #     raise api_exceptions.BadRequest()
+        else:
+            raise APIException()
     
     if 'ticket_type' in query_params:
         ticket_type = json.loads(query_params.get('ticket_type'))
@@ -125,8 +125,8 @@ def filter_flight(requestor, query_params):
             filter['ticket_type'] = ticket_type
         elif isinstance(ticket_type, int):
             filter['ticket_type'] = [ticket_type]
-        # else:
-        #     raise api_exceptions.BadRequest()
+        else:
+            raise APIException()
 
     queryset = Flight.objects.filter(
         created_at__isnull=False
@@ -178,25 +178,28 @@ def filter_flight(requestor, query_params):
 
 def retrieve_flight(requestor, flight_id):
     ''' Retrieve a single flight '''
-    # if requestor.is_staff or requestor == author:
     flight = get_object_or_404(Flight, id=flight_id)
-    return flight
+    if requestor.is_staff or requestor == flight.author:
+        return flight
+    return exceptions.PermissionDenied(detail='Not authorized.')
 
 def update_flight(requestor, flight_id, data):
     '''Update a single flight '''
-    # if requestor.is_staff or requestor == author:
-    data_info = data.copy() 
     flight = retrieve_flight(requestor, flight_id)
-    updated_flight = deserialize_flight(
-        data=data_info,
-        serializer_class=FlightSerializer,
-        flight=flight,
-        action='update',
-        requestor=requestor
-    )
-    with transaction.atomic():
-        updated_flight.save()
-    return updated_flight
+    if requestor.is_staff or requestor == flight.author:
+        data_info = data.copy() 
+        updated_flight = deserialize_flight(
+            data=data_info,
+            serializer_class=FlightSerializer,
+            flight=flight,
+            action='update',
+            requestor=requestor
+        )
+        with transaction.atomic():
+            updated_flight.save()
+        return updated_flight
+    else:
+        raise exceptions.PermissionDenied()
 
 
 def deserialize_ticket(*, action='create', data, serializer_class, ticket):
@@ -220,25 +223,24 @@ def book_ticket(requestor, data):
     assert(isinstance(data, list) or isinstance(data, dict)) 
     if isinstance(data, dict):
         data = [data]
-    # if requestor.is_staff or requestor == author:
     data_info = data.copy() 
     booked_flight = []
     for dt in data_info:
         ticket = Passenger()
         flight = retrieve_flight(requestor, dt.get('passenger_flight'))
+        if requestor != flight.author and not requestor.is_staff:
+            raise exceptions.PermissionDenied('Not authorized.')
         if flight:
-            # import pdb; pdb.set_trace()
-            # dt['flight'] = flight
             serializer = deserialize_ticket(
                 data=dt, 
                 serializer_class=CreateBookFlightSerializer,
                 ticket=ticket
             )
             with transaction.atomic():
-                
                 serializer.flight = flight
                 serializer.save()
                 booked_flight.append(serializer)
+        task_notify_user.delay(dt.get('email'))
     return booked_flight
 
 def retrieve_passenger(requestor, flight_id):

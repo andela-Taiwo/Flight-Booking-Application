@@ -22,7 +22,6 @@ class Flight(models.Model):
         (RETURN, _('Return ticket')),
         (ONE_WAY, _('One way'))
     )
-    # passenger = models.ForeignKey(Passenger, related_name='passenger', on_delete=models.PROTECT)
     author = models.ForeignKey(User, related_name='Client', on_delete=models.PROTECT, blank=True, null=True)
     starting_from = models.CharField(max_length=255)
     destination = models.CharField(max_length=255)
@@ -33,7 +32,7 @@ class Flight(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     checkin = models.BooleanField()
-
+    notification_sent_at = models.DateTimeField(null=True, blank=True)
 
 class Passenger(models.Model):
     ''' Passenger Model '''
