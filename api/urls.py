@@ -6,5 +6,6 @@ router = DefaultRouter()
 
 urlpatterns = [
     path('', include('user.urls')),
+    path('', include('flight.urls')),
 ]
 urlpatterns += router.urls
