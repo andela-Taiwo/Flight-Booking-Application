@@ -8,6 +8,7 @@ from .serializers import (
     FlightSerializer,
     BookFlightSerializer
 )
+from user.serializers import UserSerializer
 from rest_framework import authentication, permissions
 from api.response import FlightBoookingAPIResponse
 import flight.services as flight_services
@@ -24,6 +25,20 @@ class FlightViewSet(viewsets.ViewSet):
         )
         return FlightBoookingAPIResponse(
             FlightSerializer(flights, many=True).data
+
+        )
+
+    @decorators.action(methods=['get'], detail=False, url_path='(users/(?P<type>\d+)/day/(?P<day>[0-9+\-]+))')
+    def list_users(self, request, *args, **kwargs):
+        ''' View to list users for a particular on a specific day '''
+        users = flight_services.list_users(
+            requestor=request.user,
+            query_params=request.query_params,
+            day=kwargs.get('day'),
+            type=kwargs.get('type')
+        ) 
+        return FlightBoookingAPIResponse(
+           users
         )
 
     def update(self, request, *args, **kwargs):
