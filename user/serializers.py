@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from user.models import User, Profile
+from user.models import User, Profile, Upload
 from rest_auth.serializers import UserDetailsSerializer, PasswordResetSerializer
 from rest_auth.registration.serializers import RegisterSerializer
 from allauth.account.adapter import get_adapter
@@ -27,7 +27,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        field = '__all__'
+        fields = '__all__'
 
     def save(self, **kwargs):
         profile = self.validated_data.pop('profile')
@@ -115,3 +115,33 @@ class UserSerializer(UserDetailsSerializer):
             profile.country = country if country else profile.country
             profile.save()
         return instance
+
+
+class FileUploadSerializer(serializers.ModelSerializer):
+    profile = ProfileSerializer(read_only=True)
+    class Meta:
+        model = Upload
+        fields = [
+            'id',
+            'profile_picture_name',
+            'profile_picture_url',
+            'profile'
+        ]
+
+class ViewProfileSerializer(serializers.ModelSerializer):
+    profile_picture = serializers.SerializerMethodField(read_only=True)
+    class Meta:
+        model = Profile
+        field = '__all__'
+        exclude = [
+            'created_at'
+        ]
+        read_only_fields = [
+            'profile_picture'
+        ]
+
+    def get_profile_picture(self, Profile):
+
+        if Profile.profile_picture is not None:
+            return Profile.profile_picture.values('profile_picture_url', 'profile_picture_key')
+        return []

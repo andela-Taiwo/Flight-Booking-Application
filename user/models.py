@@ -3,14 +3,15 @@ from decimal import Decimal
 from datetime import datetime, timedelta
 from django.contrib.auth.models import User
 from django.db import models
+from rest_framework.exceptions import APIException
 from django.db.models import Sum
 from django.dispatch import receiver
 from django.conf import settings
 from django.utils import timezone
-from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from api.soft_deletion_model import SoftDeletionModel
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -109,6 +110,11 @@ class Profile(models.Model):
     zipcode = models.CharField(max_length=10, null=True)
     country = models.CharField(max_length=255, null=True, blank=True)
     type = models.IntegerField(choices=USER_TYPES, default=USER_CLIENT)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    # profile_picture_name = models.TextField(null=True, blank=True)
+    # profile_picture_url = models.TextField(null=True, blank=True)
+    # profile_picture_key = models.TextField(null=True, blank=True)
 
 
 @receiver(post_save, sender=User)
@@ -119,3 +125,33 @@ def create_user_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
+
+
+class Upload(SoftDeletionModel):
+    '''File upload model '''
+    profile_picture_name = models.TextField(null=True, blank=True)
+    profile_picture_url = models.TextField(null=True, blank=True)
+    profile_picture_key = models.TextField(null=True, blank=True)
+    profile = models.ForeignKey(
+        Profile,
+        related_name='profile_picture',
+        verbose_name="profile_uploader",
+        on_delete=models.PROTECT
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Deleted at'
+    )
+    def validate_unique(self, exclude=None):
+        qs = Upload.objects.filter(profile_picture_key=self.profile_picture_key)
+        if self.pk is None:   
+            if qs.exists():
+                raise APIException(detail='file key already exist')
+            
+    def save(self, *args, **kwargs):
+        self.validate_unique()
+        super(Upload, self).save(*args, **kwargs)
+

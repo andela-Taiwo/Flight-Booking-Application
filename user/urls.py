@@ -8,9 +8,13 @@ from .views import (
     VerifyEmailView,
     django_rest_auth_null,
     complete_view,
-    CustomLoginView
+    CustomLoginView, 
+    UserViewSet,
+    UploadViewSet
     )
 router = DefaultRouter()
+router.register(r'profile', UserViewSet, base_name='api_v1_profile')
+router.register(r'profile/upload', UploadViewSet, base_name='api_v1_profile_upload')
 urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('', include('rest_auth.urls')),

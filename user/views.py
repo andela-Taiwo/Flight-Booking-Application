@@ -14,7 +14,13 @@ from rest_framework import (
     viewsets,
     decorators
 )
-from .serializers import UserSerializer
+import user.services as user_service
+from .serializers import (
+    UserSerializer, 
+    ProfileSerializer,
+    FileUploadSerializer,
+    ViewProfileSerializer
+    )
 from rest_framework import authentication, permissions
 from api.response import FlightBoookingAPIResponse
 
@@ -26,6 +32,101 @@ def django_rest_auth_null():
 @api_view()
 def complete_view(request):
     return Response("Email account is activated")
+
+class UserViewSet(viewsets.ViewSet):
+    ''' User Profile views '''
+    def retrieve(self, request, *args, **kwargs):
+        profile = user_service.retrieve_profile(
+            requestor=request.user,
+            profile_id=kwargs.get('pk')
+        )
+        return FlightBoookingAPIResponse(ViewProfileSerializer(profile).data)
+
+    @decorators.action(methods=['post'], detail=False, url_path='upload')
+    def upload_profile_picture(self, request, **kwargs):
+        # user_id = kwargs.get('pk')
+        try:
+            profile_picture = request.FILES['picture']
+        except:
+            profile_picture = None
+        profile = user_service.upload_profile_picture(
+            data=request.data,
+            requestor=request.user, 
+            file=profile_picture
+        )
+        return FlightBoookingAPIResponse(FileUploadSerializer(profile).data)
+
+    # @decorators.action(methods=['put'], detail=False, url_path='upload/(?P<upload_id>[0-9]+)')
+    # def update_profile_picture(self, request, **kwargs):
+    #     import pdb; pdb.set_trace()
+    #     try:
+    #         profile_picture = request.FILES['picture']
+    #     except:
+    #         profile_picture = None
+    #     profile = user_service.update_profile_picture(
+    #         requestor=request.user,
+    #         file=profile_picture,
+    #         upload_id=kwargs.get('upload_id')
+          
+    #     )
+    #     return FlightBoookingAPIResponse(FileUploadSerializer(profile).data)
+
+    # @decorators.action(methods=['delete'], detail=False, url_path='upload/(?P<upload_id>[0-9]+)')
+    # def delete_profile_picture(self, request, **kwargs):
+        # try:
+        #     profile_picture = request.FILES['picture']
+        # except:
+        #     profile_picture = None
+        # profile = user_service.delete_profile_picture(
+        #     requestor=request.user,
+        #     file=profile_picture,
+        #     upload_id=kwargs.get('upload_id')
+          
+        # )
+        # return FlightBoookingAPIResponse(FileUploadSerializer(profile).data)
+
+    
+class UploadViewSet(viewsets.ViewSet):
+    def post(self, request, **kwargs):
+        # user_id = kwargs.get('pk')
+        try:
+            profile_picture = request.FILES['picture']
+        except:
+            profile_picture = None
+        profile = user_service.upload_profile_picture(
+            data=request.data,
+            requestor=request.user, 
+            file=profile_picture
+        )
+        return FlightBoookingAPIResponse(FileUploadSerializer(profile).data)
+
+    def update(self, request, **kwargs):
+        try:
+            profile_picture = request.FILES['picture']
+        except:
+            profile_picture = None
+        profile = user_service.update_profile_picture(
+            requestor=request.user,
+            file=profile_picture,
+            upload_id=kwargs.get('pk')
+          
+        )
+        return FlightBoookingAPIResponse(FileUploadSerializer(profile).data)
+
+    def delete(self, request, **kwargs):
+        try:
+            profile_picture = request.FILES['picture']
+        except:
+            profile_picture = None
+        profile = user_service.delete_profile_picture(
+            requestor=request.user,
+            file=profile_picture,
+            upload_id=kwargs.get('pk')
+          
+        )
+        return FlightBoookingAPIResponse(FileUploadSerializer(profile).data)
+
+
 
 
 class VerifyEmailView(APIView):

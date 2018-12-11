@@ -1,8 +1,12 @@
+import pytz
 import json
+from datetime import datetime, timedelta
 from rest_framework.generics import get_object_or_404
+from django.db.models import Q
 from django.contrib.auth.models import User
 from rest_framework.exceptions import APIException
 from rest_framework import exceptions
+from user.serializers import UserSerializer
 from .models import (
   Flight, Passenger
 )
@@ -79,6 +83,30 @@ def create_flight(requestor, data):
             flights.append(flight)
     return  flights
 
+def list_users(requestor, query_params, day, type):
+    ''' List users for a flight in a given day'''
+    date_ = day.split('-')
+    today = datetime.now().replace(tzinfo=pytz.UTC)
+    try:
+        year = int(date_[0])
+        month = int(date_[1])
+        day = int(date_[2])
+        today = datetime(year=year, month=month, day=day, hour=0, minute=0, second=0).replace(tzinfo=pytz.UTC)
+    except:
+        raise APIException(detail='Provide proper date')
+    today = datetime(year=year, month=month, day=day, hour=0, minute=0, second=0).replace(tzinfo=pytz.UTC)
+    flights = Flight.objects.filter(
+        departure__gte=today, flight_type=type, author__isnull=False, departure__lt=today+timedelta(hours=24)
+        ).select_related('author').distinct('author')
+    
+    total_users = flights.count()
+    flight_users = []
+    for flight in flights:
+        flight_users.append(flight.author)
+    return {
+        "users":  UserSerializer(flight_users, many=True).data,
+        "total_count": total_users
+        }
 
 def filter_flight(requestor, query_params):
     '''Filter flight'''
