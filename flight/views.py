@@ -79,7 +79,7 @@ class FlightViewSet(viewsets.ViewSet):
         )
 
     def create(self, request, *args, **kwargs):
-        ''' Create a single flight'''
+        ''' Create a one or more flight reservation'''
         flight = flight_services.create_flight(
             data=request.data,
             requestor=request.user
