@@ -33,6 +33,9 @@ class Flight(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     checkin = models.BooleanField()
     notification_sent_at = models.DateTimeField(null=True, blank=True)
+    price = models.DecimalField(decimal_places=4, max_digits=1000, blank=True, null=True)
+    charge_id = models.IntegerField(blank=True, null=True),
+    payment = models.BooleanField(default=False)
 
 class Passenger(models.Model):
     ''' Passenger Model '''

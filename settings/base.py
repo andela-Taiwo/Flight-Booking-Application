@@ -207,3 +207,7 @@ S3_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default='')
 S3_SECRET_KEY = config('AWS_SECRET_KEY', default='')
 S3_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default='')
 S3_KEY_ID = config('AWS_ACCESS_KEY_ID', default='')
+
+#stripe credentials
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
+STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY', default='')

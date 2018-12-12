@@ -106,3 +106,14 @@ class FlightViewSet(viewsets.ViewSet):
         return FlightBoookingAPIResponse(
             BookFlightSerializer(confirmed_flight).data
         )
+
+    @decorators.action(methods=['post'], detail=False, url_path='payment')
+    def flight_payment(self, request, *args, **kwargs):
+        flight_charged = flight_services.ticket_payment(
+            requestor=request.user,
+            data=request.data,
+        )
+        return FlightBoookingAPIResponse(
+            FlightSerializer(flight_charged, many=True).data
+        )
+    

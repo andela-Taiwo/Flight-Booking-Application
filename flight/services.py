@@ -1,11 +1,13 @@
 import pytz
 import json
+import random
 from datetime import datetime, timedelta
 from rest_framework.generics import get_object_or_404
 from django.db.models import Q
 from django.contrib.auth.models import User
 from rest_framework.exceptions import APIException
 from rest_framework import exceptions
+import stripe
 from user.serializers import UserSerializer
 from .models import (
   Flight, Passenger
@@ -22,6 +24,7 @@ from .serializers import (
     CreateBookFlightSerializer
     )
 from flight.tasks import task_notify_user
+from paystackapi.transaction import Transaction
 
 
 def _split_choices_int(choices):
@@ -286,3 +289,36 @@ def confirm_checkin(requestor, flight_id):
         
         return passenger
     raise exceptions.PermissionDenied(detail='Not your flight')
+
+    
+def ticket_payment(requestor, data):
+    assert(isinstance(data, list) or isinstance(data, dict)) 
+    if isinstance(data, dict):
+        data = [data]
+    price = 0
+    flights = []
+    for dt in data:
+        flight = retrieve_flight(requestor, dt.get('flight_id'))
+        if flight.flight_type == Flight.BUSINESS_CLASS:
+            price = 100000
+        elif flight.flight_type == Flight.FIRST_CLASS:
+            price = 200000
+        else:
+            raise APIException(detail='Not a valid flight type')
+        token = ['476598863', '454734423', '548893903']
+        if dt.get('token') in token:
+            with transaction.atomic():
+                # response = Transaction.charge_token(reference='reference',
+                #                             token='token', email='email',
+                #                             amount='amount')
+                flight.payment = True
+                flight.price = price
+                flight.charge_id = random.randrange(1, 10000)
+                flight.save()
+            
+            flights.append(flight)
+        else:
+            raise APIException('Invalid token')
+            
+    return flights
+
