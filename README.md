@@ -7,6 +7,18 @@ An automatic travel event reminder for user when they book a flight.
 * **Virtualenv** : “A tool to create isolated Python environments” [source](https://virtualenv.pypa.io/en/latest/). We will use virtualenv to create a environment where the tools used will not interfere with the system’s local Python instance.
 * **Django**: “Django is a high-level Python Web framework that encourages rapid development and clean, pragmatic design.” [source](https://www.djangoproject.com/). We will install Django using pip.
 
+## Features
+- Registration `POST api/v1/registration/`
+- Login `POST api/v1/login/   ` 
+- Flight reservation `POST api/v1/flight/`
+- Book Ticket `POST api/v1/flight/book/`
+- Retrieve flight reservation `GET api/v1/flight/{id}/`
+- Confirm flight checkin `GET api/v1/flight/{id}/confirm/`
+- List  and count all users for flight on a specific  day `GET api/v1/flight/users/{flight_type}/{day(yyyy-mm-day)}/`
+- Upload a profile picture `POST api/v1/profile/upload/`
+- Change profile picture `PUT api/v1/profile/upload/{id}/`
+- Delete profile picture `DELETE api/v1/profile/upload/{id}/`
+- Purchase flight ticket `POST api/v1/flight/payment/`
 
 ## Installation
 
