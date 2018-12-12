@@ -1,3 +1,4 @@
+import re
 from rest_framework import serializers
 from user.models import User, Profile, Upload
 from rest_auth.serializers import UserDetailsSerializer, PasswordResetSerializer
@@ -53,7 +54,27 @@ class RegisterSerializerCustom(RegisterSerializer):
         'first_name': self.validated_data.get('first_name', ''),
         'last_name': self.validated_data.get('last_name', ''), 
     }
-    
+
+    def validate_email(self, email):
+        pattern = r"^.+@(\[?)[a-zA-Z0-9-.]+.([a-zA-Z]{2,3}|[0-9]{1,3})(]?)$"
+        if len(email) > 7  and bool(re.match(pattern, email)):
+            return email
+        raise serializers.ValidationError('Invalid email address')
+
+
+    def validate_password1(self, password1):
+        pattern = r"^(?=.*[\d])(?=.*[A-Z])(?=.*[a-z])(?=.*[@#$])[\w\d@#$]{6,60}$"
+        if bool(re.match(pattern, password1)):
+            return password1
+        raise serializers.ValidationError('password must be atleast 6 characters, must include numbers, chararcers, uppercase and lowercase character')
+
+    def validate_password2(self, password2):
+        password1 = self.initial_data.get('password1', None)
+        if password1 == password2:
+            return password2
+        raise serializers.ValidationError('Password does not match')
+
+
     def save(self, request):
         adapter = get_adapter()
         user = adapter.new_user(request)
