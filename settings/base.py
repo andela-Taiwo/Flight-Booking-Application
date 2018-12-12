@@ -211,3 +211,6 @@ S3_KEY_ID = config('AWS_ACCESS_KEY_ID', default='')
 #stripe credentials
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
 STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY', default='')
+
+#paystack credential
+PAYSTACK_SECRET_KEY = config('PAYSTACK_SECRET_KEY', default='') 
