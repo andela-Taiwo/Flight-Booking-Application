@@ -1,0 +1,7 @@
+[run]
+omit=
+    */.virtualenvs/flight_booking_app/*
+    */venv/*
+    */.tox/*
+    */migrations/*
+    */s3_services.py

@@ -5,16 +5,17 @@ from django.contrib.sites.models import Site
 from django.conf import settings
 from django.core.mail import send_mail
 from celery.decorators import task
-from .celery import app
+from flight.celery import app
 
 from flight.utils import send_flight_detail
 
 logger = get_task_logger(__name__)
 
-site = Site.objects.first()
+
 
 @app.task(name="send_notification_flight_reservation")
-def task_notify_user(email, flight):
+def task_notify_user(email, flight_id):
+    site = Site.objects.first()
     logger.info("Send user's flight reservation notification")
     notification_text = """Hi,
                     This is to inform you that your flight reservation on Fly-Right was successful. 
@@ -23,8 +24,8 @@ def task_notify_user(email, flight):
 
                     Have a nice day.
                     Fly-Right Admin
-                    """.format(site, flight.pk)
-    send_mail(
+                    """.format(site, flight_id)
+    return send_mail(
         'Hello',
         notification_text,
         settings.EMAIL_HOST_USER,

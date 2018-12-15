@@ -3,8 +3,8 @@ from rest_framework import (
     viewsets,
     decorators
 )
-from rest_framework.exceptions import APIException
-from .serializers import (
+from rest_framework import exceptions
+from flight.serializers import (
     FlightSerializer,
     BookFlightSerializer
 )
@@ -28,7 +28,7 @@ class FlightViewSet(viewsets.ViewSet):
 
         )
 
-    @decorators.action(methods=['get'], detail=False, url_path='(users/(?P<type>\d+)/day/(?P<day>[0-9+\-]+))')
+    @decorators.action(methods=['get'], detail=False, url_path='users/(?P<type>\d+)/day/(?P<day>[0-9+\-]+)')
     def list_users(self, request, *args, **kwargs):
         ''' View to list users for a particular on a specific day '''
         users = flight_services.list_users(
@@ -46,7 +46,7 @@ class FlightViewSet(viewsets.ViewSet):
         try:
             flight_id = int(kwargs.get('pk'))
         except ValueError as e:
-            raise APIException(detail='Invalid flight number')
+            raise exceptions.NotAcceptable(detail='Invalid flight number')
 
         flight = flight_services.update_flight(
             requestor=request.user,
@@ -65,7 +65,7 @@ class FlightViewSet(viewsets.ViewSet):
         try:
             flight_id = int(kwargs.get('pk'))
         except ValueError as e:
-            raise APIException(detail='Invalid flight number')
+            raise exceptions.NotAcceptable(detail='Invalid flight number')
         
         flight = flight_services.retrieve_flight(
             requestor=request.user,
@@ -93,6 +93,7 @@ class FlightViewSet(viewsets.ViewSet):
             requestor=request.user,
             data=request.data,
         )
+
         return FlightBoookingAPIResponse(
             BookFlightSerializer(booked_flight, many=True).data
         )

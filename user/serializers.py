@@ -72,7 +72,7 @@ class RegisterSerializerCustom(RegisterSerializer):
         password1 = self.initial_data.get('password1', None)
         if password1 == password2:
             return password2
-        raise serializers.ValidationError('Password does not match')
+        raise serializers.ValidationError('Passwords did not match.')
 
 
     def save(self, request):

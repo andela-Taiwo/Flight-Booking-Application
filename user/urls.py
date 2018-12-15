@@ -4,17 +4,17 @@ from rest_framework.routers import DefaultRouter
 from rest_auth.registration.views import RegisterView
 from allauth.account.views import confirm_email, PasswordResetView
 from allauth.account.views import ConfirmEmailView
-from .views import (
-    VerifyEmailView,
+from user.views import (
     django_rest_auth_null,
     complete_view,
     CustomLoginView, 
     UserViewSet,
     UploadViewSet
     )
+
 router = DefaultRouter()
-router.register(r'profile', UserViewSet, base_name='api_v1_profile')
-router.register(r'profile/upload', UploadViewSet, base_name='api_v1_profile_upload')
+router.register(r'profile/upload', UploadViewSet, base_name='apiv1_profileupload')
+router.register(r'profile', UserViewSet, base_name='apiv1_profile')
 urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('', include('rest_auth.urls')),
