@@ -1,6 +1,10 @@
 # Flight-Booking-Application
 An automatic travel event reminder for user when they book a flight.
 
+Badges
+
+[![Coverage Status](https://coveralls.io/repos/github/andela-Taiwo/Flight-Booking-Application/badge.svg?branch=add-tests-%23162612587)](https://coveralls.io/github/andela-Taiwo/Flight-Booking-Application?branch=add-tests-%23162612587) [![CircleCI](https://circleci.com/gh/andela-Taiwo/Flight-Booking-Application.svg?style=svg)](https://circleci.com/gh/andela-Taiwo/Flight-Booking-Application)
+
 ## Technology 
 * **Python 3** : “Python is a widely used high-level programming language for general-purpose programming, created by Guido van Rossum and first released in 1991[source](https://www.python.org/downloads/release/python-360/). An interpreted language, Python has a design philosophy which emphasizes code readability (notably using whitespace indentation to delimit code blocks rather than curly braces or keywords), and a syntax which allows programmers to express concepts in fewer lines of code than possible in languages such as C++ or Java. The language provides constructs intended to enable writing clear programs on both a small and large scale” 
 * **pip** : “The PyPA recommended tool for installing Python packages” [source](https://pypi.org/project/pip/). Use pip to manage what Python packages the system or a virtualenv has available.
