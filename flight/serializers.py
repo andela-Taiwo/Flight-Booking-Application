@@ -80,3 +80,4 @@ class BookFlightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Passenger
         fields = ('__all__') 
+        read_only_fields = ['passenger_flight']

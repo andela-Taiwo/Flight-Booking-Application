@@ -5,6 +5,7 @@ from .views import (
     FlightViewSet
     )
 router = DefaultRouter()
-router.register(r'flight', FlightViewSet, base_name='api_v1_flight')
+router.register(r'flight', FlightViewSet, base_name='apiv1_flight')
 urlpatterns = []
+# print(router.urls, '$$'*50)
 urlpatterns += router.urls

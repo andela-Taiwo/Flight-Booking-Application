@@ -1,5 +1,5 @@
 import pytz
-from .models import Flight, Passenger
+from flight.models import Flight, Passenger
 from django.core.mail import send_mail
 from django.conf import settings
 from datetime import datetime, timedelta
@@ -29,7 +29,7 @@ def send_flight_detail():
                     Have a nice day.
                     Fly-Right Admin
                     """.format(site, passenger.passenger_flight.pk)
-
+            
             send_mail(
                 'Confirm Flight Checkin',
                 notification_text,

@@ -9,7 +9,7 @@ from rest_framework.exceptions import APIException
 from rest_framework import exceptions
 import stripe
 from user.serializers import UserSerializer
-from .models import (
+from flight.models import (
   Flight, Passenger
 )
 from django.db import (
@@ -114,32 +114,6 @@ def list_users(requestor, query_params, day, type):
 def filter_flight(requestor, query_params):
     '''Filter flight'''
     filter = {}
-    if 'checkin' in query_params:
-        checkin_flights = json.loads(query_params.get('checkin'))
-        if isinstance(checkin_flights, list):
-            filter['checkin'] = checkin_flights
-        elif isinstance(checkin_flights, int):
-            filter['level'] = [checkin_flights]
-        else:
-            raise APIException()
-
-    if 'destination' in query_params:
-        flight_destination = json.loads(query_params.get('destination'))
-        if isinstance(flight_destination, list):
-            filter['destination'] = flight_destination
-        elif isinstance(flight_destination, int):
-            filter['destination'] = [flight_destination]
-        else:
-            raise APIException()
-
-    if 'starting_from' in query_params:
-        flight_start = json.loads(query_params.get('starting_from'))
-        if isinstance(flight_start, list):
-            filter['starting_from'] = flight_start
-        elif isinstance(flight_start, int):
-            filter['starting_from'] = [flight_start]
-        else:
-            raise APIException()
     
     if 'flight_type' in query_params:
         flight_type = json.loads(query_params.get('flight_type'))
@@ -162,48 +136,24 @@ def filter_flight(requestor, query_params):
     queryset = Flight.objects.filter(
         created_at__isnull=False
     )
-    if 'checkin' in filter:
-        flight_checkin = filter['checkin']
-        include, exclude = _split_choices_int(flight_checkin)
-        if len(include) != 0:
-            queryset = queryset.filter(level__in=include)
-        if len(exclude) != 0:
-            queryset = queryset.exclude(level__in=exclude)
+   
  
     if 'ticket_type' in filter:
         ticket_type = filter['ticket_type']
         include, exclude = _split_choices_int(ticket_type)
         if len(include) != 0:
-            queryset = queryset.filter(language__in=include)
+            queryset = queryset.filter(ticket_type__in=include)
         if len(exclude) != 0:
-            queryset = queryset.exclude(language__in=exclude)
+            queryset = queryset.exclude(ticket_type__in=exclude)
 
     if 'flight_type' in filter:
-        media_type = filter['flight_type']
-        include, exclude = _split_choices_int(media_type)
+        flight_type = filter['flight_type']
+        include, exclude = _split_choices_int(flight_type)
         if len(include) != 0:
  
-            queryset = queryset.filter(type__in=include)
+            queryset = queryset.filter(flight_type__in=include)
         if len(exclude) != 0:
-            queryset = queryset.exclude(type__in=exclude)
-    
-    if 'destination' in filter:
-        flight_destination = filter['destination']
-        include, exclude = _split_choices_int(flight_destination)
-        if len(include) != 0:
- 
-            queryset = queryset.filter(type__in=include)
-        if len(exclude) != 0:
-            queryset = queryset.exclude(type__in=exclude)
-    
-    if 'starting_from' in filter:
-        flight_start = filter['starting_from']
-        include, exclude = _split_choices_int(flight_start)
-        if len(include) != 0:
- 
-            queryset = queryset.filter(type__in=include)
-        if len(exclude) != 0:
-            queryset = queryset.exclude(type__in=exclude)
+            queryset = queryset.exclude(flight_type__in=exclude)
 
     return queryset
 
@@ -268,10 +218,9 @@ def book_ticket(requestor, data):
                 ticket=ticket
             )
             with transaction.atomic():
-                serializer.flight = flight
                 serializer.save()
                 booked_flight.append(serializer)
-        task_notify_user.delay(dt.get('email'))
+            task_notify_user.delay(dt.get('email'), flight.id)
     return booked_flight
 
 def retrieve_passenger(requestor, flight_id):
@@ -280,15 +229,15 @@ def retrieve_passenger(requestor, flight_id):
 
 def confirm_checkin(requestor, flight_id):
     passenger = retrieve_passenger(requestor, flight_id)
-    if passenger == requestor:
-        if passenger.passenger_flight.checkin == False:
-            passenger.passenger_flight.checkin = True
+    # if passenger == requestor:
+    if passenger.passenger_flight.checkin == False:
+        passenger.passenger_flight.checkin = True
 
-            with transaction.atomic():
-                passenger.save()
-        
-        return passenger
-    raise exceptions.PermissionDenied(detail='Not your flight')
+        with transaction.atomic():
+            passenger.save()
+    
+    return passenger
+    # raise exceptions.PermissionDenied(detail='Not your flight')
 
     
 def ticket_payment(requestor, data):
@@ -304,21 +253,20 @@ def ticket_payment(requestor, data):
         elif flight.flight_type == Flight.FIRST_CLASS:
             price = 200000
         else:
-            raise APIException(detail='Not a valid flight type')
+            raise exceptions.NotAcceptable(detail='Not a valid flight type')
         token = ['476598863', '454734423', '548893903']
-        if dt.get('token') in token:
-            with transaction.atomic():
-                # response = Transaction.charge_token(reference='reference',
-                #                             token='token', email='email',
-                #                             amount='amount')
-                flight.payment = True
-                flight.price = price
-                flight.charge_id = random.randrange(1, 10000)
-                flight.save()
-            
-            flights.append(flight)
-        else:
-            raise APIException('Invalid token')
-            
-    return flights
+        if dt.get('token') not in token:
+            raise exceptions.NotAcceptable(detail='Invalid token')
 
+        # if dt.get('token') in token:
+        with transaction.atomic():
+            # response = Transaction.charge_token(reference='reference',
+            #                             token='token', email='email',
+            #                             amount='amount')
+            flight.payment = True
+            flight.price = price
+            flight.charge_id = random.randrange(1, 10000)
+            flight.save()
+        
+        flights.append(flight)         
+    return flights

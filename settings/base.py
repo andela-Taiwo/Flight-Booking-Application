@@ -17,7 +17,6 @@ import dj_database_url
 from django.urls import reverse_lazy
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 SECRET_KEY = config('SECRET_KEY')
 DATABASES = {'default': dj_database_url.config()}
 

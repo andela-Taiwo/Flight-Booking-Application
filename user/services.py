@@ -13,11 +13,11 @@ from api.s3_services import (
     s3_upload,
     s3_presigned_url
 )
-from .models import (
+from user.models import (
   Profile, Upload
 )
 
-from .serializers import ProfileSerializer, FileUploadSerializer
+from user.serializers import ProfileSerializer, FileUploadSerializer
 
 
 
@@ -81,13 +81,8 @@ def create_or_update_profile_pic(requestor, file, uploaded_profile):
         return uploaded_profile
 
 def upload_profile_picture(requestor, data, file):
-
-    # import pdb; pdb.set_trace() 
-    try:
-        data.pop('picture', None)
-    except:
-        data = data.copy()
-
+    data.pop('picture', None)
+    data = data.copy()
     
     if file is None:
         return []
