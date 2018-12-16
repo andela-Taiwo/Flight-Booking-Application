@@ -3,7 +3,7 @@ from .base import *
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    'flight-booking-api.herokuapp.com'
+    'fly-right.herokuapp.com'
 ]
 
 ADMINS = (('@memunat', 'taiwo.sokunbi@andela.com'), )

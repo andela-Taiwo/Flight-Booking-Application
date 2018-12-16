@@ -81,7 +81,7 @@ EMAIL_USE_TLS = True
 # ACCOUNT_ADAPTER = 'api.adapter.DefaultAccountAdapterCustom'
 URL_FRONT = 'http://localhost:8000/'
 # LOGIN_URL='/api/v1/login/'
-LOGIN_URL='http://flight-booking-api.herokuapp.com/'
+LOGIN_URL='http://fly-right.herokuapp.com/api/v1/login/'
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
@@ -123,6 +123,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -168,8 +169,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Celery Configuration
-BROKER_URL = 'redis://localhost:6379'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+BROKER_URL = config('REDIS_URL', default='redis://localhost:6379')
+CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://localhost:6379')
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
