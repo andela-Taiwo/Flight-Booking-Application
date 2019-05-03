@@ -1,7 +1,7 @@
 from django.utils.translation import ugettext_lazy as _
 from decimal import Decimal
 from datetime import datetime, timedelta
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.db import models
 from rest_framework import exceptions
 from rest_framework.exceptions import APIException
