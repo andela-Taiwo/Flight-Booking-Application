@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'rest_framework',
     'rest_framework.authtoken',
     'api',
@@ -42,7 +43,6 @@ INSTALLED_APPS = [
     # 'media',
     'corsheaders',
     'rest_auth',
-    'django.contrib.sites',
     'allauth',
     'allauth.account',
     'rest_auth.registration',
@@ -79,7 +79,7 @@ EMAIL_USE_TLS = True
 
 # rest-auth 
 # ACCOUNT_ADAPTER = 'api.adapter.DefaultAccountAdapterCustom'
-URL_FRONT = 'http://localhost:8000/'
+URL_FRONT = 'http://localhost:5000/'
 # LOGIN_URL='/api/v1/login/'
 LOGIN_URL='http://fly-right.herokuapp.com/api/v1/login/'
 ACCOUNT_AUTHENTICATION_METHOD = 'email'

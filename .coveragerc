@@ -5,3 +5,4 @@ omit=
     */.tox/*
     */migrations/*
     */s3_services.py
+    
