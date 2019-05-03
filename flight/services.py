@@ -7,7 +7,6 @@ from django.db.models import Q
 from django.contrib.auth.models import User
 from rest_framework.exceptions import APIException
 from rest_framework import exceptions
-import stripe
 from user.serializers import UserSerializer
 from flight.models import (
   Flight, Passenger
@@ -135,7 +134,7 @@ def filter_flight(requestor, query_params):
 
     queryset = Flight.objects.filter(
         created_at__isnull=False
-    )
+    ).order_by('-created_at')
    
  
     if 'ticket_type' in filter:

@@ -3,6 +3,7 @@ from decimal import Decimal
 from datetime import datetime, timedelta
 from django.contrib.auth.models import User
 from django.db import models
+from rest_framework import exceptions
 from rest_framework.exceptions import APIException
 from django.db.models import Sum
 from django.dispatch import receiver
@@ -48,6 +49,7 @@ class UserManager(BaseUserManager):
         return self._create_user(**fields)
 
 
+
 class User(AbstractUser):
     username = None
     email = models.EmailField(max_length=50, unique=True)
@@ -64,6 +66,16 @@ class User(AbstractUser):
     objects = UserManager()
     class Meta:
         verbose_name_plural = "All Users"
+    
+    def validate_unique(self, exclude=None):
+        qs = User.objects.filter(email=self.email)
+        if self.pk is None:
+            if qs.exists():
+                raise exceptions.NotAcceptable('User with the email already exist')
+
+    def save(self, *args, **kwargs):
+        self.validate_unique()
+        super(User, self).save(*args, **kwargs)
 
 
 class Profile(models.Model):
@@ -80,17 +92,17 @@ class Profile(models.Model):
     USER_DR = 4
 
     USER_TYPES = (
-        (USER_CLIENT, 'Client'),
-        (USER_ADMIN, 'Admin'),
+        (USER_CLIENT, _('Client')),
+        (USER_ADMIN, _('Admin')),
     )
     
 
     USER_TITLES = (
-        (USER_MR, 'Mr.'),
-        (USER_MS, 'Ms.'),
-        (USER_MRS, 'Mrs.'),
-        (USER_MISS, 'Miss.'),
-        (USER_DR, 'Dr.')
+        (USER_MR, _('Mr.')),
+        (USER_MS, _('Ms.')),
+        (USER_MRS, _('Mrs.')),
+        (USER_MISS, _('Miss.')),
+        (USER_DR, _('Dr.'))
     )
 
     user = models.OneToOneField(User, related_name='profile', on_delete=models.CASCADE)
